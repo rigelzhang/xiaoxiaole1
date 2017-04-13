@@ -1,0 +1,236 @@
+#include<iostream>
+using namespace std;
+ 
+int T,N,W,H;
+int map[16][13];
+int visit[16][13];
+int minb;//答案
+ 
+void iniVisit(){
+ 
+    for(int i=1;i<16;i++){
+     
+        for(int j=1;j<13;j++){
+         
+            visit[i][j]=0;
+        }
+    }
+}
+ 
+void diss(int x,int y){
+ 
+    int num=map[x][y];//导弹范围
+ 
+    map[x][y]=0;
+ 
+    for(int i=1;i<num;i++){
+     
+        if(x-i>0&&x-i<=H){//上
+         
+            if(map[x-i][y]==1||map[x-i][y]==0){
+             
+                map[x-i][y]=0;
+            }else{
+             
+                diss(x-i,y);
+            }
+        }
+ 
+        if(x+i>0&&x+i<=H){//下
+         
+            if(map[x+i][y]==1||map[x+i][y]==0){
+             
+                map[x+i][y]=0;
+            }else{
+             
+                diss(x+i,y);
+            }
+        }
+ 
+        if(y-i>0&&y-i<=W){//左
+         
+            if(map[x][y-i]==1||map[x][y-i]==0){
+             
+                map[x][y-i]=0;
+            }else{
+             
+                diss(x,y-i);
+            }
+        }
+ 
+        if(y+i>0&&y+i<=W){//右
+         
+            if(map[x][y+i]==1||map[x][y+i]==0){
+             
+                map[x][y+i]=0;
+            }else{
+             
+                diss(x,y+i);
+            }
+        }
+     
+     
+    }
+ 
+}
+ 
+void drop(){
+ 
+    for(int j=1;j<=W;j++){//遍历每一列
+     
+        int k1=H,k2=H;//两个指针同时指向最下面的值
+ 
+        while(k2>0){
+         
+            if(map[k1][j]==0){//两指针为0
+         
+                if(map[k2][j]!=0){
+                 
+                        map[k1][j]=map[k2][j];
+                        map[k2][j]=0;
+                }else{
+                    while(k2-->0){
+                 
+                        if(map[k2][j]!=0){
+                 
+                            map[k1][j]=map[k2][j];
+                            map[k2][j]=0;
+                            break;
+                        }else{
+                 
+                            k2--;
+                        }
+                    }
+                }
+            }
+             
+            k1--;
+            k2--;
+        }
+    }
+ 
+}
+ 
+void dfs(int level){
+ 
+    int flag=0;
+    int saveMap[16][13];
+    for(int i=1;i<16;i++){
+     
+        for(int j=1;j<13;j++){
+         
+            saveMap[i][j]=map[i][j];
+        }
+    }
+ 
+    if(level>N){//放完N个导弹
+ 
+        int bnum=0;
+        for(int i=1;i<=H;i++){
+         
+            for(int j=1;j<=W;j++){
+             
+                if(map[i][j]!=0){
+                 
+                    bnum++;
+                }
+            }
+        }
+ 
+        if(minb>bnum){
+         
+            minb=bnum;
+        }
+     
+        return;
+    }
+ 
+    for(int j=1;j<=W;j++){//从上往下放导弹，所以要找上面没有挡着的，从列开始遍历
+     
+        flag=0;
+        for(int i=1;i<=H;i++){
+ 
+            if(flag==1){
+             
+                break;//走完三层，跳出
+            }
+ 
+            if(map[i][j]==0){
+             
+                continue;
+            }
+         
+            if(map[i][j]!=0&&visit[i][j]==0){//此处为导弹
+             
+                visit[i][j]=1;
+ 
+                //放一次炸一次
+                diss(i,j);
+                //int a=0;
+                //for(int i=1;i<=H;i++){
+                //
+                //  for(int j=1;j<=W;j++){
+                //  
+                //      if(map[i][j]!=0){
+                //      
+                //          a++;
+                //      }
+                //      cout<<map[i][j]<<" ";
+                //  }
+                //  cout<<endl;
+                //}
+                //cout<<endl;
+                //cout<<"num="<<a<<endl;
+                 
+                //每炸一个，掉落
+                drop();
+                dfs(level+1);
+                visit[i][j]=0;
+                flag=1;
+                for(int i=1;i<16;i++){
+     
+                    for(int j=1;j<13;j++){
+         
+                        map[i][j]=saveMap[i][j];
+                    }
+                }
+            }
+        }
+     
+    }
+ 
+ 
+}
+ 
+int main(){
+ 
+    freopen("input.txt","r",stdin);
+    cin>>T;
+    for(int case_test=1;case_test<=T;case_test++){
+     
+        cin>>N>>W>>H;//输入投放的导弹数，列数，行数
+        for(int i=1;i<=H;i++){
+         
+            for(int j=1;j<=W;j++){
+             
+                cin>>map[i][j];//block分布图
+            }
+        }
+ 
+        //放N个导弹，用dfs得出不同的放法
+        iniVisit();
+        minb=9999999999;
+        dfs(1);
+ 
+        cout<<"#"<<case_test<<" "<<minb<<endl;
+     
+    }
+ 
+    return 0;
+}
+/**************************************************************
+    Problem: 1129
+    User: xiangyingxin
+    Language: C++
+    Result: 答案错误
+****************************************************************/
